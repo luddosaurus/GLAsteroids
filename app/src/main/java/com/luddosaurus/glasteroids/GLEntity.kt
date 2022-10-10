@@ -31,6 +31,9 @@ open class GLEntity {
     var y = 0.0f
     var velX = 0f
     var velY = 0f
+    var width = 0.0f
+    var height = 0.0f
+
 
     open fun update(dt: Float) {
         x += velX * dt;

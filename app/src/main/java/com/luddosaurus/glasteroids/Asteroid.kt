@@ -9,17 +9,19 @@ fun between(min: Float, max: Float): Float = min + Random.nextFloat() * (max - m
 
 class Asteroid(x: Float, y: Float, points: Int) : GLEntity(){
     init{
-        assert(points >= 3, {"triangles or more, please. :)"})
+        assert(points >= 3) { "triangles or more, please. :)" }
         this.x = x
         this.y = y
-
+        width = 12f; //TO DO: gameplay settings
+        height = width;
         velX = between(MIN_VEL, MAX_VEL)
         velY = between(MIN_VEL, MAX_VEL)
 
-        val radius = 6.0f
+        val radius = width*0.5f
         this.mesh = Mesh(
             generateLinePolygon(points, radius),
             GLES20.GL_LINES
         )
+        mesh.setWidthHeight(width, height);
     }
 }

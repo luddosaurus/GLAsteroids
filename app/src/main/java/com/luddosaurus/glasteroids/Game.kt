@@ -15,12 +15,12 @@ import javax.microedition.khronos.opengles.GL10
 import kotlin.random.Random
 
 
-const val WORLD_WIDTH = 144f //all dimensions are in meters
-const val WORLD_HEIGHT = 80f
-const val METERS_TO_SHOW_X = 144f //160m x 90m, the entire game world in view
+const val WORLD_WIDTH = 144f//all dimensions are in meters
+const val WORLD_HEIGHT = 70f
+const val METERS_TO_SHOW_X = 144f//160m x 90m, the entire game world in view
 const val METERS_TO_SHOW_Y = 70f //TO DO: calculate to match screen aspect ratio
-val STAR_COUNT = 100
-val ASTEROID_COUNT = 10
+const val STAR_COUNT = 100
+const val ASTEROID_COUNT = 10
 
 lateinit var engine: Game
 
@@ -46,7 +46,7 @@ class Game(
 
     // Entities
     private val player = Player(WORLD_WIDTH / 2f, WORLD_HEIGHT/2f)
-    private val border = Border(0f, 0f, WORLD_WIDTH, WORLD_HEIGHT)
+    private val border = Border(WORLD_WIDTH/2f, WORLD_HEIGHT/2f, WORLD_WIDTH, WORLD_HEIGHT)
     private val stars = ArrayList<Star>()
     private val asteroids = ArrayList<Asteroid>()
 

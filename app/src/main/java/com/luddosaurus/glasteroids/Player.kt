@@ -10,7 +10,12 @@ class Player(x: Float, y: Float) : GLEntity() {
     init {
         this.x = x
         this.y = y
+        width = 1f; //TO DO: gameplay values! move to configs
+        height = 1.5f;
         this.mesh = Triangle.mesh
+
+        mesh.setWidthHeight(width, height);
+        mesh.flipY();
     }
 
     override fun render(viewportMatrix: FloatArray) {
