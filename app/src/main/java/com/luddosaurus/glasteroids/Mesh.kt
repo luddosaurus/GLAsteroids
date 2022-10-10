@@ -23,7 +23,11 @@ const val X = 0
 const val Y = 1
 const val Z = 2
 
-open class Mesh(geometry: FloatArray, dm: Int = GLES20.GL_TRIANGLES) {
+open class Mesh(
+    geometry: FloatArray,
+    dm: Int = GLES20.GL_TRIANGLES,
+    private val norm: Boolean = true,
+) {
     lateinit var vertexBuffer: FloatBuffer
     var vertexCount = 0
     var drawMode = dm
@@ -38,7 +42,7 @@ open class Mesh(geometry: FloatArray, dm: Int = GLES20.GL_TRIANGLES) {
         setVertices(geometry)
         applyDrawMode(drawMode)
         updateBounds()
-        normalize()
+        if (norm) normalize()
     }
 
     private fun updateBounds() {

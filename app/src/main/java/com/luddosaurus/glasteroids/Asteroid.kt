@@ -20,7 +20,7 @@ class Asteroid(x: Float, y: Float, points: Int) : GLEntity(){
         val radius = width*0.5f
         this.mesh = Mesh(
             generateLinePolygon(points, radius),
-            GLES20.GL_LINES
+            GLES20.GL_LINES,
         )
         mesh.setWidthHeight(width, height);
     }

@@ -49,6 +49,8 @@ class Game(
     private val border = Border(WORLD_WIDTH/2f, WORLD_HEIGHT/2f, WORLD_WIDTH, WORLD_HEIGHT)
     private val stars = ArrayList<Star>()
     private val asteroids = ArrayList<Asteroid>()
+    private val texts = ArrayList<Text>()
+
 
 
     private val viewportMatrix = FloatArray(4 * 4) // Camera
@@ -97,7 +99,6 @@ class Game(
     }
 
     override fun onDrawFrame(p0: GL10?) {
-
         update()
         render()
 
@@ -105,12 +106,14 @@ class Game(
 
     // trying a fixed time-step with accumulator, courtesy of
     // https://gafferongames.com/post/fix_your_timestep/Links to an external site.
-    val dt = 0.01f
-    var accumulator = 0.0f
+    private val dt = 0.01f
+    private var accumulator = 0.0f
     var currentTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS).toFloat()
+
     private fun update() {
         val newTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS).toFloat()
         val frameTime = newTime - currentTime
+
         currentTime = newTime
         accumulator += frameTime
         while (accumulator >= dt) {
@@ -119,10 +122,16 @@ class Game(
             }
             player.update(dt)
             accumulator -= dt
+
+            fps = 1f/frameTime
+            texts.clear()
+            texts.add(Text("$fps fps", 8f, 8f))
         }
     }
 
+    var fps = 0f
     private fun render() {
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT) //clear buffer to background color
         val offset = 0
         val left = 0f
@@ -138,6 +147,9 @@ class Game(
         }
         for (a in asteroids) {
             a.render(viewportMatrix)
+        }
+        for (t in texts) {
+            t.render(viewportMatrix)
         }
         player.render(viewportMatrix)
     }
