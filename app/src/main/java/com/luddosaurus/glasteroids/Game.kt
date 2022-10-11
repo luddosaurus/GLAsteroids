@@ -21,6 +21,8 @@ const val METERS_TO_SHOW_X = 144f//160m x 90m, the entire game world in view
 const val METERS_TO_SHOW_Y = 70f //TO DO: calculate to match screen aspect ratio
 const val STAR_COUNT = 100
 const val ASTEROID_COUNT = 10
+const val TIME_BETWEEN_SHOTS = 0.25f //seconds. TO DO: game play setting!
+const val BULLET_COUNT = (TIME_TO_LIVE / TIME_BETWEEN_SHOTS).toInt()+1
 
 lateinit var engine: Game
 
@@ -50,6 +52,8 @@ class Game(
     private val stars = ArrayList<Star>()
     private val asteroids = ArrayList<Asteroid>()
     private val texts = ArrayList<Text>()
+    private var bullets = ArrayList<Bullet>(BULLET_COUNT)
+
 
     var inputs = InputManager() //empty but valid default
 
@@ -68,6 +72,10 @@ class Game(
             val y = Random.nextInt(WORLD_HEIGHT.toInt()).toFloat()
             val points = Random.nextInt(6) + 3
             asteroids.add(Asteroid(x, y, points))
+        }
+
+        for (i in 0 until BULLET_COUNT) {
+            bullets.add(Bullet())
         }
 
         setEGLContextClientVersion(2)
@@ -113,6 +121,16 @@ class Game(
 
     }
 
+    fun maybeFireBullet(source: GLEntity): Boolean {
+        for (b in bullets) {
+            if (!b.isAlive) {
+                b.fireFrom(source)
+                return true
+            }
+        }
+        return false
+    }
+
     // trying a fixed time-step with accumulator, courtesy of
     // https://gafferongames.com/post/fix_your_timestep/Links to an external site.
     private val dt = 0.01f
@@ -129,6 +147,14 @@ class Game(
             for (a in asteroids) {
                 a.update(dt)
             }
+
+            for (b in bullets) {
+                if (!b.isAlive) {
+                    continue //skip
+                }
+                b.update(dt)
+            }
+
             player.update(dt)
             accumulator -= dt
 
@@ -136,6 +162,7 @@ class Game(
             texts.clear()
             texts.add(Text("FPS:${fps}", 8f, 8f))
         }
+
     }
 
     var fps = 0f
@@ -159,6 +186,9 @@ class Game(
         }
         for (t in texts) {
             t.render(viewportMatrix)
+        }
+        for (b in bullets.filter { bullet -> bullet.isAlive }) {
+            b.render(viewportMatrix)
         }
         player.render(viewportMatrix)
     }

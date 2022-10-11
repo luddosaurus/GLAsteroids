@@ -14,7 +14,8 @@ class Border(
         width = worldWidth - 1.0f //-1 so the border isn't obstructed by the screen edge
 
         height = worldHeight - 1.0f
-        setColors(1f, 0f, 0f, 1f) //RED for visibility
+
+        setColors(0.5f, 0f, 0.5f, 1f) //RED for visibility
 
         mesh = Mesh(generateLinePolygon(4, 10.0f), GLES20.GL_LINES)
         mesh.rotateZ(45 * TO_RAD)

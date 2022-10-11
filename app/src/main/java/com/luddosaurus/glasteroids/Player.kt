@@ -12,6 +12,9 @@ const val DRAG = 0.99f
 
 private const val TAG = "Player"
 class Player(x: Float, y: Float) : GLEntity() {
+
+    private var bulletCooldown = 0f
+
     init {
         this.x = x
         this.y = y
@@ -32,12 +35,27 @@ class Player(x: Float, y: Float) : GLEntity() {
     }
 
     override fun update(dt: Float) {
-        rotation += dt * ROTATION_VELOCITY * engine.inputs.horizontalFactor
-        if (engine.inputs.pressingB || engine.inputs.pressingA) {
-            val thrust = if (engine.inputs.pressingB) THRUST else -THRUST
+
+        bulletCooldown -= dt;
+        if(engine.inputs.pressingA && bulletCooldown <= 0f){
+            setColors(1f, 0f, 1f, 1f);
+            if(engine.maybeFireBullet(this)){
+                bulletCooldown = TIME_BETWEEN_SHOTS;
+            }
+            // Recoil
             val theta = rotation * TO_RADIANS
-            velX += sin(theta) * thrust
-            velY -= cos(theta) * thrust
+            velX += sin(theta) * THRUST * -0.5f
+            velY -= cos(theta) * THRUST * -0.5f
+
+        }else{
+            setColors(1.0f, 1f, 1f,1f);
+        }
+
+        rotation += dt * ROTATION_VELOCITY * engine.inputs.horizontalFactor
+        if (engine.inputs.pressingB) {
+            val theta = rotation * TO_RADIANS
+            velX += sin(theta) * THRUST
+            velY -= cos(theta) * THRUST
         }
         velX *= DRAG
         velY *= DRAG
