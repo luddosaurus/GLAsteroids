@@ -1,11 +1,13 @@
 package com.luddosaurus.glasteroids
 
+import android.graphics.PointF
 import android.opengl.GLES20
 import android.opengl.Matrix
 import com.luddosaurus.glasteroids.GLManager.draw
+import kotlin.math.abs
 
 //re-usable singleton TriangleMesh
-object Triangle{
+object Triangle {
     val mesh = Mesh(floatArrayOf(     // in counterclockwise order:
         0.0f, 0.622008459f, 0.0f,      // top
         -0.5f, -0.311004243f, 0.0f,    // bottom left
@@ -17,7 +19,6 @@ object Triangle{
 val modelMatrix = FloatArray(4 * 4)
 val viewportModelMatrix = FloatArray(4 * 4)
 val rotationViewportModelMatrix = FloatArray(4 * 4)
-
 
 
 open class GLEntity {
@@ -33,45 +34,48 @@ open class GLEntity {
     var velY = 0f
     var width = 0.0f
     var height = 0.0f
+    var isAlive = true
 
 
     open fun update(dt: Float) {
-        x += velX * dt;
-        y += velY * dt;
+        x += velX * dt
+        y += velY * dt
 
-        if(left() > WORLD_WIDTH){
-            setRight(0f);
-        }else if(right() < 0f){
-            setLeft(WORLD_WIDTH);
+        if (left() > WORLD_WIDTH) {
+            setRight(0f)
+        } else if (right() < 0f) {
+            setLeft(WORLD_WIDTH)
         }
 
-        if(top() > WORLD_HEIGHT){
-            setBottom(0f);
-        }else if(bottom() < 0f){
-            setTop(WORLD_HEIGHT);
+        if (top() > WORLD_HEIGHT) {
+            setBottom(0f)
+        } else if (bottom() < 0f) {
+            setTop(WORLD_HEIGHT)
         }
 
-        if(y > WORLD_HEIGHT/2f){
-            setColors(1f, 0f, 0f, 1f);
-        }else{
-            setColors(1f, 1f, 1f, 1f);
+        if (y > WORLD_HEIGHT / 2f) {
+            setColors(1f, 0f, 0f, 1f)
+        } else {
+            setColors(1f, 1f, 1f, 1f)
         }
     }
 
-    fun left() =  x + mesh.left()
-    fun right()=  x + mesh.right()
+    fun left() = x + mesh.left()
+    fun right() = x + mesh.right()
     fun setLeft(leftEdgePosition: Float) {
         x = leftEdgePosition - mesh.left()
     }
+
     fun setRight(rightEdgePosition: Float) {
         x = rightEdgePosition - mesh.right()
     }
 
-    fun top() =  y + mesh.top()
+    fun top() = y + mesh.top()
     fun bottom() = y + mesh.bottom()
     fun setTop(topEdgePosition: Float) {
         y = topEdgePosition - mesh.top()
     }
+
     fun setBottom(bottomEdgePosition: Float) {
         y = bottomEdgePosition - mesh.bottom()
     }
@@ -90,11 +94,19 @@ open class GLEntity {
         Matrix.scaleM(modelMatrix, OFFSET, scale, scale, 1f)
         //finally, multiply the rotated & scaled model matrix into the model-viewport matrix
         //creating the final rotationViewportModelMatrix that we pass on to OpenGL
-        Matrix.multiplyMM(rotationViewportModelMatrix, OFFSET, viewportModelMatrix, OFFSET, modelMatrix, OFFSET)
+        Matrix.multiplyMM(rotationViewportModelMatrix,
+            OFFSET,
+            viewportModelMatrix,
+            OFFSET,
+            modelMatrix,
+            OFFSET)
         draw(mesh, rotationViewportModelMatrix, color)
     }
 
-    open fun onCollision(that: GLEntity?) {}
+    open fun onCollision(that: GLEntity?) {
+        isAlive = false
+    }
+
 
     fun setColors(colors: FloatArray) {
         assert(colors.size == 4)
@@ -107,4 +119,81 @@ open class GLEntity {
         color[2] = b //blue
         color[3] = a //alpha (transparency)
     }
+
+    open fun isDead(): Boolean {
+        return !isAlive
+    }
+
+    open fun isColliding(that: GLEntity): Boolean {
+        if (this === that) {
+            throw AssertionError("isColliding: You shouldn't test Entities against themselves!")
+        }
+        return isAABBOverlapping(this, that)
+    }
+
+    open fun centerX(): Float {
+        return x //assumes our mesh has been centered on [0,0] (normalized)
+    }
+
+    open fun centerY(): Float {
+        return y //assumes our mesh has been centered on [0,0] (normalized)
+    }
+
+    open fun radius(): Float {
+        //use the longest side to calculate radius
+        return if (width > height) width * 0.5f else height * 0.5f
+    }
+
+    open fun getPointList(): ArrayList<PointF> {
+        return mesh.getPointList(x, y, rotation)
+    }
+}
+
+//a basic axis-aligned bounding box intersection test.
+//https://gamedev.stackexchange.com/questions/586/what-is-the-fastest-way-to-work-out-2d-bounding-box-intersection
+fun isAABBOverlapping(a: GLEntity, b: GLEntity): Boolean {
+    return !(a.right() <= b.left() || b.right() <= a.left() || a.bottom() <= b.top() || b.bottom() <= a.top())
+}
+
+//a more refined AABB intersection test
+//returns true on intersection, and sets the least intersecting axis in overlap
+val overlap = PointF(0f, 0f); //re-usable PointF for collision detection. Assumes single threading.
+
+@SuppressWarnings("UnusedReturnValue")
+fun getOverlap(a: GLEntity, b: GLEntity, overlap: PointF): Boolean {
+    overlap.x = 0.0f
+    overlap.y = 0.0f
+    val centerDeltaX = a.centerX() - b.centerX()
+    val halfWidths = (a.width + b.width) * 0.5f
+    var dx = abs(centerDeltaX) //cache the abs, we need it twice
+
+    if (dx > halfWidths) return false //no overlap on x == no collision
+
+    val centerDeltaY = a.centerY() - b.centerY()
+    val halfHeights = (a.height + b.height) * 0.5f
+    var dy = abs(centerDeltaY)
+
+    if (dy > halfHeights) return false //no overlap on y == no collision
+
+    dx = halfWidths - dx //overlap on x
+    dy = halfHeights - dy //overlap on y
+    if (dy < dx) {
+        overlap.y = if (centerDeltaY < 0f) -dy else dy
+    } else if (dy > dx) {
+        overlap.x = if (centerDeltaX < 0) -dx else dx
+    } else {
+        overlap.x = if (centerDeltaX < 0) -dx else dx
+        overlap.y = if (centerDeltaY < 0) -dy else dy
+    }
+    return true
+}
+
+
+fun areBoundingSpheresOverlapping(a: GLEntity, b: GLEntity): Boolean {
+    val dx = a.centerX() - b.centerX() //delta x
+    val dy = a.centerY() - b.centerY()
+    val distanceSq = dx * dx + dy * dy
+    val minDistance = a.radius() + b.radius()
+    val minDistanceSq = minDistance * minDistance
+    return distanceSq < minDistanceSq
 }

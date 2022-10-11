@@ -24,4 +24,5 @@ class Asteroid(x: Float, y: Float, points: Int) : GLEntity(){
         )
         mesh.setWidthHeight(width, height);
     }
+
 }

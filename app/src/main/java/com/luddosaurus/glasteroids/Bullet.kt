@@ -1,18 +1,18 @@
 package com.luddosaurus.glasteroids
 
+import android.graphics.PointF
 import kotlin.math.cos
 import kotlin.math.sin
 
 private val BULLET_MESH = Dot.mesh //reusing the Dot (defined in Star.kt, but available throughout the package)
 const val SPEED = 120f //TO DO: game play settings
-const val TIME_TO_LIVE = 3.0f //seconds
+const val TIME_TO_LIVE = 0.5f //seconds
 
 class Bullet : GLEntity() {
     var ttl = TIME_TO_LIVE
     init {
         setColors(1f, 0f, 1f, 1f)
         mesh = BULLET_MESH //all bullets use the exact same mesh
-        scale = 2f
     }
 
     fun fireFrom(source: GLEntity) {
@@ -26,8 +26,9 @@ class Bullet : GLEntity() {
         ttl = TIME_TO_LIVE
     }
 
-    val isAlive: Boolean
-        get() = ttl > 0
+    override fun isDead(): Boolean {
+        return ttl < 1
+    }
 
     override fun update(dt: Float) {
         if (ttl > 0) {
@@ -41,4 +42,13 @@ class Bullet : GLEntity() {
             super.render(viewportMatrix)
         }
     }
+
+    override fun isColliding(that: GLEntity): Boolean {
+        if (!areBoundingSpheresOverlapping(this, that)) { //quick rejection
+            return false
+        }
+        val asteroidVertices: ArrayList<PointF> = that.getPointList()
+        return polygonVsPoint(asteroidVertices, x, y)
+    }
+
 }

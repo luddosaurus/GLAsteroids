@@ -1,5 +1,6 @@
 package com.luddosaurus.glasteroids
 
+import android.graphics.PointF
 import android.opengl.GLES20
 import android.util.Log
 import java.lang.Math.PI
@@ -86,6 +87,27 @@ open class Mesh(
                 || dm == GLES20.GL_POINTS)
 
         this.drawMode = dm
+    }
+
+    open fun getPointList(offsetX: Float, offsetY: Float, facingAngleDegrees: Float): ArrayList<PointF> {
+        val sinTheta = sin(facingAngleDegrees * TO_RADIANS)
+        val cosTheta = cos(facingAngleDegrees * TO_RADIANS)
+        val verts = FloatArray(vertexCount * COORDS_PER_VERTEX)
+        vertexBuffer.position(0)
+        vertexBuffer.get(verts)
+        vertexBuffer.position(0)
+        val out = ArrayList<PointF>(vertexCount)
+        var i = 0
+        while (i < vertexCount * COORDS_PER_VERTEX) {
+            val x = verts[i + X]
+            val y = verts[i + Y]
+            val rotatedX = (x * cosTheta - y * sinTheta) + offsetX
+            val rotatedY = (y * cosTheta + x * sinTheta) + offsetY
+            //final float z = verts[i + Z];
+            out.add(PointF(rotatedX, rotatedY)) //warning! creating new PointFs... use a pool!
+            i += COORDS_PER_VERTEX
+        }
+        return out
     }
 
     private fun setVertices(geometry: FloatArray) {

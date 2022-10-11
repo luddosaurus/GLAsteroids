@@ -6,6 +6,7 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.util.AttributeSet
+import android.util.Log
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
@@ -123,12 +124,43 @@ class Game(
 
     fun maybeFireBullet(source: GLEntity): Boolean {
         for (b in bullets) {
-            if (!b.isAlive) {
+            if (b.isDead()) {
                 b.fireFrom(source)
                 return true
             }
         }
         return false
+    }
+
+    private fun collisionDetection() {
+        for (bullet in bullets) {
+            if (bullet.isDead()) { continue } //skip dead bullets
+            for (asteroid in asteroids) {
+                if (asteroid.isDead()) { continue } //skip dead asteroids
+
+                if (bullet.isColliding(asteroid)) {
+                    bullet.onCollision(asteroid) //notify each entity so they can decide what to do
+                    asteroid.onCollision(bullet)
+                }
+            }
+        }
+        for (asteroid in asteroids) {
+            if (asteroid.isDead()) { continue } //skip dead asteroids
+
+            if (player.isColliding(asteroid)) {
+                player.onCollision(asteroid)
+                asteroid.onCollision(player)
+            }
+        }
+    }
+
+    private fun removeDeadEntities() {
+        val count = asteroids.size
+        for (i in count - 1 downTo 0) {
+            if (asteroids[i].isDead()) {
+                asteroids.removeAt(i)
+            }
+        }
     }
 
     // trying a fixed time-step with accumulator, courtesy of
@@ -149,13 +181,15 @@ class Game(
             }
 
             for (b in bullets) {
-                if (!b.isAlive) {
-                    continue //skip
-                }
+                if (b.isDead()) { continue }
                 b.update(dt)
             }
 
             player.update(dt)
+
+            collisionDetection()
+            removeDeadEntities()
+
             accumulator -= dt
 
             fps = 1f/frameTime

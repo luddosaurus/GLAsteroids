@@ -3,7 +3,7 @@ import android.graphics.Color
 import android.opengl.GLES20
 
 object Dot{
-    val mesh = Mesh( floatArrayOf(0f, 0f, 0f), GLES20.GL_POINTS)
+    val mesh = Mesh( floatArrayOf(0f, 0f, 0f), GLES20.GL_POINTS, norm = false)
 }
 
 class Star(x: Float, y: Float) : GLEntity() {
