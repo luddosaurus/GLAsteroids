@@ -14,7 +14,7 @@ class Text(s: String, x: Float, y: Float) : GLEntity() {
         this.y = y
         //we can't use setWidthHeight, because normalization will break
         //the layout of the pixel-font. So we resort to simply scaling the text-entity
-        setScaling(0.75f); //TO DO: magic value. scaling to 75%
+        setScaling(0.5f); //TO DO: magic value. scaling to 75%
     }
 
     fun setString(s: String) {

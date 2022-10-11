@@ -51,7 +51,7 @@ class Game(
     private val asteroids = ArrayList<Asteroid>()
     private val texts = ArrayList<Text>()
 
-
+    var inputs = InputManager() //empty but valid default
 
     private val viewportMatrix = FloatArray(4 * 4) // Camera
 
@@ -73,6 +73,15 @@ class Game(
         setEGLContextClientVersion(2)
         setRenderer(this)
 
+    }
+
+
+    fun setControls(input: InputManager) {
+        inputs.onPause()
+        inputs.onStop()
+        inputs = input
+        inputs.onResume()
+        inputs.onStart()
     }
 
     private fun hexToFloat(hex: Int): Float = hex / 255f
@@ -125,7 +134,7 @@ class Game(
 
             fps = 1f/frameTime
             texts.clear()
-            texts.add(Text("$fps fps", 8f, 8f))
+            texts.add(Text("FPS:${fps}", 8f, 8f))
         }
     }
 
