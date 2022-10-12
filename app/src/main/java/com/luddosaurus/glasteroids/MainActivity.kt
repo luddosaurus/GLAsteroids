@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     private fun hideSystemUI() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) { //handle older SDKs, using the deprecated systemUiVisbility API
             @Suppress("DEPRECATION")
@@ -53,6 +52,17 @@ class MainActivity : AppCompatActivity() {
             // hide both the system bars (eg. the status and navigation bars):
             insetsController.hide(WindowInsets.Type.systemBars())
         }
+    }
+
+    override fun onResume() {
+        game.onResume()
+        hideSystemUI()
+        super.onResume()
+    }
+
+    override fun onPause() {
+        game.onPause()
+        super.onPause()
     }
 
 }

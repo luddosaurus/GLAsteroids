@@ -65,6 +65,7 @@ class Player(x: Float, y: Float) : GLEntity() {
 
         rotation += dt * ROTATION_VELOCITY * engine.inputs.horizontalFactor
         if (engine.inputs.pressingB) {
+            engine.onGameEvent(GameEvent.Jump, this)
             val theta = rotation * TO_RADIANS
             velX += sin(theta) * THRUST
             velY -= cos(theta) * THRUST
@@ -72,5 +73,11 @@ class Player(x: Float, y: Float) : GLEntity() {
         velX *= DRAG
         velY *= DRAG
         super.update(dt)
+    }
+
+    override fun onCollision(that: GLEntity?) {
+        when (that) {
+            is Asteroid -> engine.onGameEvent(GameEvent.Dead, this)
+        }
     }
 }

@@ -16,6 +16,7 @@ class Bullet : GLEntity() {
     }
 
     fun fireFrom(source: GLEntity) {
+        engine.onGameEvent(GameEvent.CoinPickup, this)
         val theta = source.rotation * TO_RADIANS
         x = source.x + sin(theta) * (source.width * 0.5f)
         y = source.y - cos(theta) * (source.height * 0.5f)

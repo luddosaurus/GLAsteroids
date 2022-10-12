@@ -163,12 +163,10 @@ open class Mesh(
 
     //scale mesh to normalized device coordinates [-1.0, 1.0]
     private fun normalize() {
-        Log.i("hej", "width $width")
 
         val inverseW = if (width == 0.0f) 0.0f else (1f / width)
         val inverseH = if (height == 0.0f) 0.0f else (1f / height)
         val inverseD = if (depth == 0.0f) 0.0f else (1f / depth)
-        Log.i("hej", "inverseW $inverseW")
         var i = 0
         while (i < vertexCount * COORDS_PER_VERTEX) {
             val dx = (vertexBuffer[i + X] - min.x)
@@ -177,7 +175,6 @@ open class Mesh(
             val xNorm = 2.0f * (dx * inverseW) - 1.0f //(dx * inverseW) is equivalent to (dx / width)
             val yNorm = 2.0f * (dy * inverseH) - 1.0f //but avoids the risk of division-by-zero.
             val zNorm = 2.0f * (dz * inverseD) - 1.0f
-            Log.i("hej", "NormX $xNorm")
             vertexBuffer.put(i + X, xNorm)
             vertexBuffer.put(i + Y, yNorm)
             vertexBuffer.put(i + Z, zNorm)

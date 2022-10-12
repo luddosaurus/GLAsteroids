@@ -15,6 +15,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.random.Random
 
+const val PREFS = "com.luddosaurus.glasteroids_preferences"
 
 const val WORLD_WIDTH = 144f//all dimensions are in meters
 const val WORLD_HEIGHT = 70f
@@ -23,7 +24,7 @@ const val METERS_TO_SHOW_Y = 70f //TO DO: calculate to match screen aspect ratio
 const val STAR_COUNT = 100
 const val ASTEROID_COUNT = 10
 const val TIME_BETWEEN_SHOTS = 0.25f //seconds. TO DO: game play setting!
-const val BULLET_COUNT = (TIME_TO_LIVE / TIME_BETWEEN_SHOTS).toInt()+1
+const val BULLET_COUNT = (TIME_TO_LIVE / TIME_BETWEEN_SHOTS).toInt() + 1
 
 lateinit var engine: Game
 
@@ -47,9 +48,13 @@ class Game(
         hexToFloat(bgColorHex.alpha)
     )
 
+    // Audio
+    private val jukebox = Jukebox(this)
+    private var audioQueue = LinkedHashSet<GameEvent>()
+
     // Entities
-    private val player = Player(WORLD_WIDTH / 2f, WORLD_HEIGHT/2f)
-    private val border = Border(WORLD_WIDTH/2f, WORLD_HEIGHT/2f, WORLD_WIDTH, WORLD_HEIGHT)
+    private val player = Player(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f)
+    private val border = Border(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, WORLD_WIDTH, WORLD_HEIGHT)
     private val stars = ArrayList<Star>()
     private val asteroids = ArrayList<Asteroid>()
     private val texts = ArrayList<Text>()
@@ -134,9 +139,13 @@ class Game(
 
     private fun collisionDetection() {
         for (bullet in bullets) {
-            if (bullet.isDead()) { continue } //skip dead bullets
+            if (bullet.isDead()) {
+                continue
+            } //skip dead bullets
             for (asteroid in asteroids) {
-                if (asteroid.isDead()) { continue } //skip dead asteroids
+                if (asteroid.isDead()) {
+                    continue
+                } //skip dead asteroids
 
                 if (bullet.isColliding(asteroid)) {
                     bullet.onCollision(asteroid) //notify each entity so they can decide what to do
@@ -145,7 +154,9 @@ class Game(
             }
         }
         for (asteroid in asteroids) {
-            if (asteroid.isDead()) { continue } //skip dead asteroids
+            if (asteroid.isDead()) {
+                continue
+            } //skip dead asteroids
 
             if (player.isColliding(asteroid)) {
                 player.onCollision(asteroid)
@@ -181,7 +192,9 @@ class Game(
             }
 
             for (b in bullets) {
-                if (b.isDead()) { continue }
+                if (b.isDead()) {
+                    continue
+                }
                 b.update(dt)
             }
 
@@ -192,14 +205,14 @@ class Game(
 
             accumulator -= dt
 
-            fps = 1f/frameTime
+            val fps = 1f / frameTime
             texts.clear()
             texts.add(Text("FPS:${fps}", 8f, 8f))
+            playAudio()
         }
 
     }
 
-    var fps = 0f
     private fun render() {
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT) //clear buffer to background color
@@ -228,7 +241,39 @@ class Game(
     }
 
 
+    private fun playAudio() {
+        for (event in audioQueue)
+            jukebox.playEventSound(event)
+
+        audioQueue.clear()
+    }
+
+
+    fun onGameEvent(event: GameEvent, e: GLEntity?) {
+        audioQueue.add(event)
+
+    }
+
+    fun pause() {
+        jukebox.pauseBgMusic()
+    }
+
+
+    fun resume() {
+        jukebox.resumeBgMusic()
+
+    }
+
+
     private var previousX: Float = 0f
     private var previousY: Float = 0f
+
+    // JukeBox2
+    public fun getActivity() = context as MainActivity
+    public fun getAssets() = context.assets
+    public fun getPreferences() = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    public fun getPreferencesEditor() = getPreferences().edit()
+    public fun savePreference(key: String, v: Boolean) =
+        getPreferencesEditor().putBoolean(key, v).commit()
 }
 
