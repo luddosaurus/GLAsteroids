@@ -55,13 +55,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        game.onResume()
+        game.resume()
         hideSystemUI()
         super.onResume()
     }
 
     override fun onPause() {
-        game.onPause()
+        game.pause()
         super.onPause()
     }
 

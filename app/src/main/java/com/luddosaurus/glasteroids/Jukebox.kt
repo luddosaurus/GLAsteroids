@@ -71,7 +71,6 @@ class Jukebox(private val engine: Game) {
             mBgPlayer!!.isLooping = true
             mBgPlayer!!.setVolume(DEFAULT_MUSIC_VOLUME, DEFAULT_MUSIC_VOLUME)
             mBgPlayer!!.prepare()
-            mBgPlayer!!.start()
 
         } catch (e: IOException) {
             Log.e(TAG, "Unable to create MediaPlayer.", e)
