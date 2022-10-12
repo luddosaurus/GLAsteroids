@@ -221,7 +221,7 @@ class Game(
         for (t in texts) {
             t.render(viewportMatrix)
         }
-        for (b in bullets.filter { bullet -> bullet.isAlive }) {
+        for (b in bullets.filter { bullet -> !bullet.isDead() }) {
             b.render(viewportMatrix)
         }
         player.render(viewportMatrix)

@@ -27,7 +27,7 @@ class Bullet : GLEntity() {
     }
 
     override fun isDead(): Boolean {
-        return ttl < 1
+        return ttl < 0
     }
 
     override fun update(dt: Float) {
