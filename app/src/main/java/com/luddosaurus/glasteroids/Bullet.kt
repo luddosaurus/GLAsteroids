@@ -28,7 +28,7 @@ class Bullet : GLEntity() {
     }
 
     override fun isDead(): Boolean {
-        return ttl < 0
+        return ttl <= 0
     }
 
     override fun update(dt: Float) {
@@ -52,4 +52,8 @@ class Bullet : GLEntity() {
         return polygonVsPoint(asteroidVertices, x, y)
     }
 
+    override fun onCollision(that: GLEntity?) {
+        if (that is Asteroid) ttl = 0f
+        super.onCollision(that)
+    }
 }

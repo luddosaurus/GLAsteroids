@@ -16,6 +16,7 @@ import kotlin.random.Random
 const val PREFS = "com.luddosaurus.glasteroids_preferences"
 
 
+const val STARTING_LIFE = 3
 const val STAR_COUNT = 100
 const val ASTEROID_COUNT = 10
 const val TIME_BETWEEN_SHOTS = 0.25f //seconds. TO DO: game play setting!
@@ -28,7 +29,15 @@ var MILLISECOND_IN_NANOSECONDS: Long = 1000000
 var NANOSECONDS_TO_MILLISECONDS = 1.0f / MILLISECOND_IN_NANOSECONDS
 var NANOSECONDS_TO_SECONDS = 1.0f / SECOND_IN_NANOSECONDS
 
-// SurfaceView & Renderer
+enum class GameState {
+    Active, GameOver
+}
+
+enum class GameEvent {
+    Boost, DAMAGE, PEW, LevelGoal, LevelStart, HIT
+
+}
+
 class Game(
     context: Context,
     attributeSet: AttributeSet? = null,
@@ -54,8 +63,14 @@ class Game(
     private val border = Border(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, WORLD_WIDTH, WORLD_HEIGHT)
     private val stars = ArrayList<Star>()
     private val asteroids = ArrayList<Asteroid>()
-    private val texts = ArrayList<Text>()
     private var bullets = ArrayList<Bullet>(BULLET_COUNT)
+
+    private var hud = HUD()
+
+    // Game
+    private var score = 0
+    private var health = STARTING_LIFE
+    private var gameState = GameState.Active
 
 
     var inputs = InputManager() //empty but valid default
@@ -73,7 +88,8 @@ class Game(
             val x = Random.nextInt(WORLD_WIDTH.toInt()).toFloat()
             val y = Random.nextInt(WORLD_HEIGHT.toInt()).toFloat()
             val points = Random.nextInt(6) + 3
-            asteroids.add(Asteroid(x, y, points))
+            val type = AsteroidSize.values().toList().shuffled().first()
+            asteroids.add(Asteroid(x, y, points, type))
         }
 
         for (i in 0 until BULLET_COUNT) {
@@ -85,6 +101,10 @@ class Game(
 
     }
 
+    private fun spawnAsteroids() {
+        for (asteroid in asteroids)
+            asteroid.isAlive = true
+    }
 
     fun setControls(input: InputManager) {
         inputs.onPause()
@@ -174,7 +194,7 @@ class Game(
     // https://gafferongames.com/post/fix_your_timestep/Links to an external site.
     private val dt = 0.01f
     private var accumulator = 0.0f
-    var currentTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS)
+    private var currentTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS)
 
     private fun update() {
         val newTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS)
@@ -204,8 +224,8 @@ class Game(
 
             playAudio()
             val fps = 1 / frameTime
-            texts.clear()
-            texts.add(Text("FPS:${fps}", 8f, 8f))
+            hud.update(score, health, fps, gameState)
+
 
         }
 
@@ -223,9 +243,9 @@ class Game(
         for (a in asteroids) {
             a.render(viewportMatrix)
         }
-        for (t in texts) {
-            t.render(viewportMatrix)
-        }
+
+        hud.render(viewportMatrix)
+
         for (b in bullets.filter { bullet -> !bullet.isDead() }) {
             b.render(viewportMatrix)
         }
@@ -244,6 +264,24 @@ class Game(
     fun onGameEvent(event: GameEvent, e: GLEntity?) {
         audioQueue.add(event)
 
+        when (event) {
+            GameEvent.DAMAGE -> onDamage();
+            GameEvent.HIT -> onHit(e);
+            else -> {}
+        }
+
+    }
+
+    private fun onHit(e: GLEntity?) {
+        when(e) {
+            is Asteroid -> score += e.type.points
+        }
+    }
+
+    private fun onDamage() {
+        health--
+        if (health == 0)
+            gameState = GameState.GameOver
     }
 
     fun pause() {
@@ -268,4 +306,5 @@ class Game(
     private fun getScreenHeight() = context.resources.displayMetrics.heightPixels
     private fun getScreenWidth() = context.resources.displayMetrics.widthPixels
 }
+
 

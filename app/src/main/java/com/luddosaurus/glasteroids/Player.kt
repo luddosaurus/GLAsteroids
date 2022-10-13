@@ -44,21 +44,18 @@ class Player(x: Float, y: Float) : GLEntity() {
 
     override fun update(dt: Float) {
 
+
+        // PEW PEW
         bulletCooldown -= dt;
         if(engine.inputs.pressingA && bulletCooldown <= 0f){
             setColors(1f, 0f, 1f, 1f);
-            if(engine.maybeFireBullet(this)){
-                bulletCooldown = TIME_BETWEEN_SHOTS;
-            }
-//            // Recoil
-//            val theta = rotation * TO_RADIANS
-//            velX += sin(theta) * THRUST * -0.5f
-//            velY -= cos(theta) * THRUST * -0.5f
+            if(engine.maybeFireBullet(this)) bulletCooldown = TIME_BETWEEN_SHOTS;
 
         }else{
             setColors(1.0f, 1f, 1f,1f);
         }
 
+        // Brrrrr
         rotation += dt * ROTATION_VELOCITY * engine.inputs.horizontalFactor
         if (engine.inputs.pressingB) {
             engine.onGameEvent(GameEvent.Boost, this)
@@ -69,11 +66,14 @@ class Player(x: Float, y: Float) : GLEntity() {
         velX *= DRAG
         velY *= DRAG
         super.update(dt)
+
     }
+
+
 
     override fun onCollision(that: GLEntity?) {
         when (that) {
-            is Asteroid -> engine.onGameEvent(GameEvent.Dead, this)
+            is Asteroid -> engine.onGameEvent(GameEvent.DAMAGE, this)
         }
     }
 }

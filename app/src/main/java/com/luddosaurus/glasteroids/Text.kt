@@ -3,6 +3,9 @@ package com.luddosaurus.glasteroids
 import android.opengl.Matrix
 import com.luddosaurus.glasteroids.GLManager.draw
 
+const val TEXT_SIZE_NORMAL = 0.4f
+const val TEXT_SIZE_LARGE = 0.6f
+
 class Text(s: String, x: Float, y: Float) : GLEntity() {
     var meshes = ArrayList<Mesh>()
     private var spacing = GLYPH_SPACING //spacing between characters
@@ -12,8 +15,8 @@ class Text(s: String, x: Float, y: Float) : GLEntity() {
         setString(s)
         this.x = x
         this.y = y
-        setScaling(0.5f);
-//        color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
+        setScaling(TEXT_SIZE_NORMAL);
+        color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
     }
 
     fun setString(s: String) {

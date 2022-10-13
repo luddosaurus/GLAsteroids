@@ -16,10 +16,7 @@ private const val DEFAULT_MUSIC_VOLUME = 1f
 private const val SOUNDS_PREF_KEY = "sound"
 private const val MUSIC_PREF_KEY = "music"
 
-enum class GameEvent {
-    Boost, Dead, PEW, LevelGoal, LevelStart
 
-}
 
 class Jukebox(private val engine: Game) {
 
@@ -121,7 +118,7 @@ class Jukebox(private val engine: Game) {
 
         mSoundsMap.clear()
         loadEventSound(GameEvent.Boost, "sfx/boost.wav")
-        loadEventSound(GameEvent.Dead, "sfx/hit.wav")
+        loadEventSound(GameEvent.DAMAGE, "sfx/hit.wav")
         loadEventSound(GameEvent.PEW, "sfx/laser.wav")
         loadEventSound(GameEvent.LevelGoal, "sfx/victory.wav")
         loadEventSound(GameEvent.LevelStart, "sfx/level_start.wav")
