@@ -4,9 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.opengl.Matrix
 import android.util.AttributeSet
-import android.util.Log
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
@@ -17,10 +15,7 @@ import kotlin.random.Random
 
 const val PREFS = "com.luddosaurus.glasteroids_preferences"
 
-const val WORLD_WIDTH = 144f//all dimensions are in meters
-const val WORLD_HEIGHT = 70f
-const val METERS_TO_SHOW_X = 144f//160m x 90m, the entire game world in view
-const val METERS_TO_SHOW_Y = 70f //TO DO: calculate to match screen aspect ratio
+
 const val STAR_COUNT = 100
 const val ASTEROID_COUNT = 10
 const val TIME_BETWEEN_SHOTS = 0.25f //seconds. TO DO: game play setting!
@@ -52,6 +47,8 @@ class Game(
     private val jukebox = Jukebox(this)
     private var audioQueue = LinkedHashSet<GameEvent>()
 
+    private val camera = Camera(getScreenWidth(), getScreenHeight())
+
     // Entities
     private val player = Player(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f)
     private val border = Border(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, WORLD_WIDTH, WORLD_HEIGHT)
@@ -63,7 +60,6 @@ class Game(
 
     var inputs = InputManager() //empty but valid default
 
-    private val viewportMatrix = FloatArray(4 * 4) // Camera
 
     init {
         engine = this
@@ -178,10 +174,10 @@ class Game(
     // https://gafferongames.com/post/fix_your_timestep/Links to an external site.
     private val dt = 0.01f
     private var accumulator = 0.0f
-    var currentTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS).toFloat()
+    var currentTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS)
 
     private fun update() {
-        val newTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS).toFloat()
+        val newTime = (System.nanoTime() * NANOSECONDS_TO_SECONDS)
         val frameTime = newTime - currentTime
 
         currentTime = newTime
@@ -205,25 +201,21 @@ class Game(
 
             accumulator -= dt
 
-            val fps = 1f / frameTime
+
+            playAudio()
+            val fps = 1 / frameTime
             texts.clear()
             texts.add(Text("FPS:${fps}", 8f, 8f))
-            playAudio()
+
         }
 
     }
 
-    private fun render() {
 
+
+    private fun render() {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT) //clear buffer to background color
-        val offset = 0
-        val left = 0f
-        val right = METERS_TO_SHOW_X
-        val bottom = METERS_TO_SHOW_Y
-        val top = 0f
-        val near = 0f
-        val far = 1f
-        Matrix.orthoM(viewportMatrix, offset, left, right, bottom, top, near, far)
+        val viewportMatrix = camera.getViewportMatrix()
         border.render(viewportMatrix)
         for (s in stars) {
             s.render(viewportMatrix)
@@ -265,15 +257,15 @@ class Game(
     }
 
 
-    private var previousX: Float = 0f
-    private var previousY: Float = 0f
-
     // JukeBox2
-    public fun getActivity() = context as MainActivity
-    public fun getAssets() = context.assets
-    public fun getPreferences() = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-    public fun getPreferencesEditor() = getPreferences().edit()
-    public fun savePreference(key: String, v: Boolean) =
+    fun getActivity() = context as MainActivity
+    fun getAssets() = context.assets
+    fun getPreferences() = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    fun getPreferencesEditor() = getPreferences().edit()
+    fun savePreference(key: String, v: Boolean) =
         getPreferencesEditor().putBoolean(key, v).commit()
+
+    private fun getScreenHeight() = context.resources.displayMetrics.heightPixels
+    private fun getScreenWidth() = context.resources.displayMetrics.widthPixels
 }
 

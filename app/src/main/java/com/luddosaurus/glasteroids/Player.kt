@@ -1,8 +1,4 @@
 package com.luddosaurus.glasteroids
-import android.graphics.PointF
-import android.os.SystemClock
-import android.util.Log
-import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -65,7 +61,7 @@ class Player(x: Float, y: Float) : GLEntity() {
 
         rotation += dt * ROTATION_VELOCITY * engine.inputs.horizontalFactor
         if (engine.inputs.pressingB) {
-            engine.onGameEvent(GameEvent.Jump, this)
+            engine.onGameEvent(GameEvent.Boost, this)
             val theta = rotation * TO_RADIANS
             velX += sin(theta) * THRUST
             velY -= cos(theta) * THRUST
