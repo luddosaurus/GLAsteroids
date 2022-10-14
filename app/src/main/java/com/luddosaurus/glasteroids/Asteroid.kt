@@ -13,17 +13,18 @@ fun between(min: Float, max: Float): Float = min + Random.nextFloat() * (max - m
 enum class AsteroidSize(
     val size: Float,
     val velocity: Float,
-    val points: Int
+    val points: Int,
+    val splitNbr: Int,
+    val childType: AsteroidSize?
 ) {
-    SMALL(BASE_SIZE, BASE_VEL*3, 3),
-    MEDIUM(BASE_SIZE*2, BASE_VEL*2, 2),
-    LARGE(BASE_SIZE*3, BASE_VEL*1,1)
+    SMALL(BASE_SIZE, BASE_VEL*3, 3, 0, null),
+    MEDIUM(BASE_SIZE*2, BASE_VEL*2, 2, 3, AsteroidSize.SMALL),
+    LARGE(BASE_SIZE*3, BASE_VEL*1,1,2, AsteroidSize.MEDIUM)
 }
 
-class Asteroid(x: Float, y: Float, points: Int, val type : AsteroidSize) : GLEntity(){
+class Asteroid(x: Float, y: Float, val type : AsteroidSize) : GLEntity(){
 
     init{
-        assert(points >= 3) { "triangles or more, please. :)" }
         this.x = x
         this.y = y
         width = type.size
@@ -31,6 +32,7 @@ class Asteroid(x: Float, y: Float, points: Int, val type : AsteroidSize) : GLEnt
         velX = between(-type.velocity, type.velocity)
         velY = between(-type.velocity, type.velocity)
 
+        val points = Random.nextInt(6) + 3
         val radius = width*0.5f
         this.mesh = Mesh(
             generateLinePolygon(points, radius),

@@ -63,6 +63,7 @@ class Game(
     private val border = Border(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, WORLD_WIDTH, WORLD_HEIGHT)
     private val stars = ArrayList<Star>()
     private val asteroids = ArrayList<Asteroid>()
+    private val asteroidsToAdd = ArrayList<Asteroid>()
     private var bullets = ArrayList<Bullet>(BULLET_COUNT)
 
     private var hud = HUD()
@@ -87,9 +88,8 @@ class Game(
         for (i in 0 until ASTEROID_COUNT) {
             val x = Random.nextInt(WORLD_WIDTH.toInt()).toFloat()
             val y = Random.nextInt(WORLD_HEIGHT.toInt()).toFloat()
-            val points = Random.nextInt(6) + 3
             val type = AsteroidSize.values().toList().shuffled().first()
-            asteroids.add(Asteroid(x, y, points, type))
+            asteroids.add(Asteroid(x, y, type))
         }
 
         for (i in 0 until BULLET_COUNT) {
@@ -158,6 +158,7 @@ class Game(
             if (bullet.isDead()) {
                 continue
             } //skip dead bullets
+
             for (asteroid in asteroids) {
                 if (asteroid.isDead()) {
                     continue
@@ -219,6 +220,11 @@ class Game(
             collisionDetection()
             removeDeadEntities()
 
+            for (a in asteroidsToAdd)
+                asteroids.add(a)
+
+            asteroidsToAdd.clear()
+
             accumulator -= dt
 
 
@@ -272,9 +278,16 @@ class Game(
 
     }
 
+
+
     private fun onHit(e: GLEntity?) {
-        when(e) {
-            is Asteroid -> score += e.type.points
+        val asteroid = e as Asteroid
+        val x = asteroid.x
+        val y = asteroid.y
+        val type = asteroid.type.childType
+        score += asteroid.type.points
+        for (i in 1 .. asteroid.type.splitNbr) {
+            asteroidsToAdd.add(Asteroid(x,y, type!!))
         }
     }
 
