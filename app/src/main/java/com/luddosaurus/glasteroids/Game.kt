@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
@@ -79,6 +78,7 @@ class Game(
     private var level = 1
     private var health = STARTING_LIFE
     private var gameState = GameState.Active
+    private var levelToBeLoaded = -1
 
 
     var inputs = InputManager() //empty but valid default
@@ -100,7 +100,21 @@ class Game(
 
     }
 
+    private fun randomColor() : Int {
+        val colors = listOf(
+            Color.MAGENTA,
+            Color.CYAN,
+            Color.BLUE,
+            Color.YELLOW,
+            Color.GREEN,
+            Color.RED
+        )
+        return colors.shuffled().first()
+    }
+
     private fun loadLevel(lvl : Int = STARTING_LEVEL) {
+        levelToBeLoaded = -1
+        val color = randomColor()
         level = lvl
         if (level == 1) {
             score = 0
@@ -111,10 +125,12 @@ class Game(
         stars.clear()
         asteroids.clear()
 
+        border.setColor(color)
+        hud.setColor(color)
         for (i in 0 until STAR_COUNT) {
             val x = Random.nextInt(camera.worldWidth.toInt()).toFloat()
             val y = Random.nextInt(camera.worldHeight.toInt()).toFloat()
-            stars.add(Star(x, y))
+            stars.add(Star(x, y, color))
         }
 
         for (i in 0 until ASTEROID_COUNT * level) {
@@ -124,8 +140,6 @@ class Game(
             asteroids.add(Asteroid(x, y, type))
         }
         gameState = GameState.Active
-        inputs.display(true)
-
     }
 
     fun setControls(input: InputManager) {
@@ -228,6 +242,8 @@ class Game(
         accumulator += frameTime
         while (accumulator >= dt) {
 
+            if (levelToBeLoaded > 0) loadLevel(levelToBeLoaded)
+
             // Updates
             for (a in asteroids) a.update(dt)
 
@@ -256,15 +272,15 @@ class Game(
 
             }
 
-            hud.update(score, health, fps = 1 / frameTime, gameState, level)
-
 
             accumulator -= dt
             playAudio()
+            hud.update(score, health, fps = 1 / frameTime, gameState, level)
 
 
         }
 
+            camera.lookAt(player.x, player.y)
     }
 
 
@@ -378,8 +394,14 @@ class Game(
             MotionEvent.ACTION_DOWN -> {
 
                 when (gameState) {
-                    GameState.GameOver -> loadLevel(STARTING_LEVEL)
-                    GameState.LevelFinish -> loadLevel(++level)
+                    GameState.GameOver -> {
+                        levelToBeLoaded = STARTING_LEVEL
+                        inputs.display(true)
+                    }
+                    GameState.LevelFinish -> {
+                        levelToBeLoaded = level + 1
+                        inputs.display(true)
+                    }
                     else -> {}
                 }
 

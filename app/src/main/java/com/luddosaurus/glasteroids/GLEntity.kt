@@ -1,8 +1,10 @@
 package com.luddosaurus.glasteroids
 
+import android.graphics.Color
 import android.graphics.PointF
 import android.opengl.GLES20
 import android.opengl.Matrix
+import androidx.core.graphics.alpha
 import com.luddosaurus.glasteroids.GLManager.draw
 import kotlin.math.abs
 
@@ -107,6 +109,12 @@ open class GLEntity {
         isAlive = false
     }
 
+    fun setColor(color : Int) {
+        this.color[0] = Color.red(color) / 255f
+        this.color[1] = Color.green(color) / 255f
+        this.color[2] = Color.blue(color) / 255f
+        this.color[3] = Color.alpha(color.alpha) / 255f
+    }
 
     fun setColors(colors: FloatArray) {
         assert(colors.size == 4)

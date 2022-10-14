@@ -1,11 +1,11 @@
 package com.luddosaurus.glasteroids
 
-import android.view.Display
+import android.R.attr.port
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.RelativeLayout
-import androidx.transition.Visibility
+
 
 class TouchController(view: View) : InputManager(),
     View.OnTouchListener {
@@ -53,6 +53,7 @@ class TouchController(view: View) : InputManager(),
                 pressingB = false
             }
         }
+
         return false
     }
 }

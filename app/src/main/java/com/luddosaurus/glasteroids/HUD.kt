@@ -1,11 +1,13 @@
 package com.luddosaurus.glasteroids
 
+import android.graphics.Color
+
 private const val PADDING_X = 8f
 private const val PADDING_Y = 6f
 class HUD {
     private val texts = ArrayList<Text>()
     private var scaling = TEXT_SIZE_NORMAL
-    private var color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
+    private var color = Color.MAGENTA
 
 
     fun update(score: Int, health: Int, fps: Float, gameState: GameState, lvl : Int) {
@@ -20,7 +22,6 @@ class HUD {
     }
 
     private fun showVictoryState(score: Int, health: Int, lvl: Int) {
-        color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
         scaling = TEXT_SIZE_LARGE
         addText("LEVEL $lvl CLEARED!!")
         addText("SCORE:$score")
@@ -30,7 +31,6 @@ class HUD {
 
 
     private fun showGameOverState(score : Int) {
-        color = floatArrayOf(1.0f, 0.0f, 0.0f, 1.0f)
         scaling = TEXT_SIZE_LARGE
         addText("GAME OVER!")
         addText("SCORE:$score")
@@ -38,7 +38,6 @@ class HUD {
     }
 
     private fun showActiveState(score : Int, health: Int, fps : Float) {
-        color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
         scaling = TEXT_SIZE_NORMAL
         addText("FPS:${fps}")
         addText("HEALTH:$health")
@@ -48,7 +47,7 @@ class HUD {
     private fun addText(infoText : String) {
         val text = Text(infoText, PADDING_X, PADDING_Y + PADDING_Y * texts.size)
         text.setScaling(scaling)
-        text.color = color
+        text.setColor(color)
         texts.add(text)
     }
 
@@ -56,6 +55,10 @@ class HUD {
         for (t in texts) {
             t.render(viewportMatrix)
         }
+    }
+
+    fun setColor(color: Int) {
+        this.color = color
     }
 
 }
