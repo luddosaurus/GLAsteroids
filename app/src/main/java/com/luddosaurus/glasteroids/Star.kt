@@ -13,7 +13,7 @@ class Star(x: Float, y: Float) : GLEntity() {
         this.color[0] = Color.red(Color.MAGENTA) / 255f
         this.color[1] = Color.green(Color.MAGENTA) / 255f
         this.color[2] = Color.blue(Color.MAGENTA) / 255f
-        this.color[3] = 1f
+        this.color[3] = 0.5f
         this.mesh = Dot.mesh //all Stars use the exact same Mesh instance.
     }
 }

@@ -10,7 +10,7 @@ import java.io.IOException
 
 private const val TAG = "Jukebox"
 const val MAX_STREAMS = 5
-private const val DEFAULT_SFX_VOLUME = 0.5f
+private const val DEFAULT_SFX_VOLUME = 0.3f
 private const val MAX_SFX_VOLUME = 1f
 private const val DEFAULT_MUSIC_VOLUME = 1f
 private const val SOUNDS_PREF_KEY = "sound"

@@ -1,10 +1,13 @@
 package com.luddosaurus.glasteroids
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.util.AttributeSet
+import android.util.Log
+import android.view.MotionEvent
 import androidx.core.graphics.alpha
 import androidx.core.graphics.blue
 import androidx.core.graphics.green
@@ -17,8 +20,9 @@ const val PREFS = "com.luddosaurus.glasteroids_preferences"
 
 
 const val STARTING_LIFE = 3
+const val STARTING_LEVEL = 1
 const val STAR_COUNT = 100
-const val ASTEROID_COUNT = 10
+const val ASTEROID_COUNT = 2
 const val PARTICLE_COUNT = 100
 const val TIME_BETWEEN_SHOTS = 0.25f //seconds
 const val BULLET_COUNT = (BULLET_TIME_TO_LIVE / TIME_BETWEEN_SHOTS).toInt() + 1
@@ -31,7 +35,7 @@ var NANOSECONDS_TO_MILLISECONDS = 1.0f / MILLISECOND_IN_NANOSECONDS
 var NANOSECONDS_TO_SECONDS = 1.0f / SECOND_IN_NANOSECONDS
 
 enum class GameState {
-    Active, GameOver
+    Active, GameOver, LevelFinish
 }
 
 enum class GameEvent {
@@ -57,11 +61,11 @@ class Game(
     private val jukebox = Jukebox(this)
     private var audioQueue = LinkedHashSet<GameEvent>()
 
-    private val camera = Camera(getScreenWidth(), getScreenHeight())
+    val camera = Camera(getScreenWidth(), getScreenHeight())
 
     // Entities
-    private val player = Player(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f)
-    private val border = Border(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, WORLD_WIDTH, WORLD_HEIGHT)
+    private val player = Player(camera.worldCenterX(), camera.worldCenterY())
+    private val border = Border(camera.worldCenterX(), camera.worldCenterY(), camera.worldWidth, camera.worldHeight)
     private val stars = ArrayList<Star>()
     private val asteroids = ArrayList<Asteroid>()
     private val asteroidsToAdd = ArrayList<Asteroid>()
@@ -72,6 +76,7 @@ class Game(
 
     // Game
     private var score = 0
+    private var level = 1
     private var health = STARTING_LIFE
     private var gameState = GameState.Active
 
@@ -81,18 +86,6 @@ class Game(
 
     init {
         engine = this
-        for (i in 0 until STAR_COUNT) {
-            val x = Random.nextInt(WORLD_WIDTH.toInt()).toFloat()
-            val y = Random.nextInt(WORLD_HEIGHT.toInt()).toFloat()
-            stars.add(Star(x, y))
-        }
-
-        for (i in 0 until ASTEROID_COUNT) {
-            val x = Random.nextInt(WORLD_WIDTH.toInt()).toFloat()
-            val y = Random.nextInt(WORLD_HEIGHT.toInt()).toFloat()
-            val type = AsteroidSize.values().toList().shuffled().first()
-            asteroids.add(Asteroid(x, y, type))
-        }
 
         for (i in 0 until BULLET_COUNT) {
             bullets.add(Bullet())
@@ -101,8 +94,37 @@ class Game(
             particles.add(Particle())
         }
 
+        loadLevel()
         setEGLContextClientVersion(2)
         setRenderer(this)
+
+    }
+
+    private fun loadLevel(lvl : Int = STARTING_LEVEL) {
+        level = lvl
+        if (level == 1) {
+            score = 0
+            health = STARTING_LIFE
+        }
+
+
+        stars.clear()
+        asteroids.clear()
+
+        for (i in 0 until STAR_COUNT) {
+            val x = Random.nextInt(camera.worldWidth.toInt()).toFloat()
+            val y = Random.nextInt(camera.worldHeight.toInt()).toFloat()
+            stars.add(Star(x, y))
+        }
+
+        for (i in 0 until ASTEROID_COUNT * level) {
+            val x = Random.nextInt(camera.worldWidth.toInt()).toFloat()
+            val y = Random.nextInt(camera.worldHeight.toInt()).toFloat()
+            val type = AsteroidSize.values().toList().shuffled().first()
+            asteroids.add(Asteroid(x, y, type))
+        }
+        gameState = GameState.Active
+        inputs.display(true)
 
     }
 
@@ -176,6 +198,7 @@ class Game(
             } //skip dead asteroids
 
             if (player.isColliding(asteroid)) {
+                if (health <= 0) continue
                 player.onCollision(asteroid)
                 asteroid.onCollision(player)
             }
@@ -227,7 +250,14 @@ class Game(
                 asteroids.add(a)
             asteroidsToAdd.clear()
 
-            hud.update(score, health, fps = 1 / frameTime, gameState)
+            if (asteroids.isEmpty() && health > 0) {
+                gameState = GameState.LevelFinish
+                inputs.display(false)
+
+            }
+
+            hud.update(score, health, fps = 1 / frameTime, gameState, level)
+
 
             accumulator -= dt
             playAudio()
@@ -236,7 +266,6 @@ class Game(
         }
 
     }
-
 
 
     private fun render() {
@@ -252,13 +281,16 @@ class Game(
 
         hud.render(viewportMatrix)
 
-        for (b in bullets.filter { bullet -> !bullet.isDead() })
-            b.render(viewportMatrix)
+
 
         for (particle in particles)
             particle.render(viewportMatrix)
 
-        player.render(viewportMatrix)
+        if (gameState == GameState.Active) {
+            for (b in bullets.filter { bullet -> !bullet.isDead() })
+                b.render(viewportMatrix)
+            player.render(viewportMatrix)
+        }
     }
 
 
@@ -311,8 +343,10 @@ class Game(
 
     private fun onDamage() {
         health--
-        if (health == 0)
+        if (health == 0) {
             gameState = GameState.GameOver
+            inputs.display(false)
+        }
     }
 
     fun pause() {
@@ -336,6 +370,28 @@ class Game(
 
     private fun getScreenHeight() = context.resources.displayMetrics.heightPixels
     private fun getScreenWidth() = context.resources.displayMetrics.widthPixels
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        when (event!!.action and MotionEvent.ACTION_MASK) {
+
+            MotionEvent.ACTION_DOWN -> {
+
+                when (gameState) {
+                    GameState.GameOver -> loadLevel(STARTING_LEVEL)
+                    GameState.LevelFinish -> loadLevel(++level)
+                    else -> {}
+                }
+
+
+            }
+        }
+        return true
+
+
+    }
+
+
 }
 
 

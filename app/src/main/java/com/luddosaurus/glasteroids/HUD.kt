@@ -8,22 +8,41 @@ class HUD {
     private var color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
 
 
-    fun update(score: Int, health: Int, fps: Float, gameState: GameState) {
+    fun update(score: Int, health: Int, fps: Float, gameState: GameState, lvl : Int) {
         texts.clear()
-        if (gameState == GameState.Active) {
-            color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
-            scaling = TEXT_SIZE_NORMAL
-            addText("FPS:${fps}")
-            addText("HEALTH:$health")
-            addText("SCORE:$score")
-        } else {
-            color = floatArrayOf(1.0f, 0.0f, 0.0f, 1.0f)
-            scaling = TEXT_SIZE_LARGE
-            addText("GAME OVER!")
-            addText("SCORE:$score")
-            addText("PRESS TO RESTART")
+
+        when (gameState) {
+            GameState.Active -> showActiveState(score,health, fps)
+            GameState.GameOver -> showGameOverState(score)
+            GameState.LevelFinish ->showVictoryState(score, health, lvl)
         }
 
+    }
+
+    private fun showVictoryState(score: Int, health: Int, lvl: Int) {
+        color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
+        scaling = TEXT_SIZE_LARGE
+        addText("LEVEL $lvl CLEARED!!")
+        addText("SCORE:$score")
+        addText("HEALTH:$health")
+        addText("PRESS TO START LVL${lvl+1}")
+    }
+
+
+    private fun showGameOverState(score : Int) {
+        color = floatArrayOf(1.0f, 0.0f, 0.0f, 1.0f)
+        scaling = TEXT_SIZE_LARGE
+        addText("GAME OVER!")
+        addText("SCORE:$score")
+        addText("PRESS TO RESTART")
+    }
+
+    private fun showActiveState(score : Int, health: Int, fps : Float) {
+        color = floatArrayOf(0.0f, 1.0f, 0.0f, 1.0f)
+        scaling = TEXT_SIZE_NORMAL
+        addText("FPS:${fps}")
+        addText("HEALTH:$health")
+        addText("SCORE:$score")
     }
 
     private fun addText(infoText : String) {

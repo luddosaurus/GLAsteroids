@@ -9,4 +9,5 @@ open class InputManager {
     fun onStop() {}
     fun onPause() {}
     fun onResume() {}
+    open fun display(display: Boolean) {}
 }

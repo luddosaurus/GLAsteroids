@@ -1,16 +1,26 @@
 package com.luddosaurus.glasteroids
 
+import android.view.Display
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
+import android.widget.RelativeLayout
+import androidx.transition.Visibility
 
 class TouchController(view: View) : InputManager(),
     View.OnTouchListener {
+
+    lateinit var layout : RelativeLayout
     init {
+        layout = view.findViewById(R.id.game_pad)
         view.findViewById<Button>(R.id.keypad_left).setOnTouchListener(this)
         view.findViewById<Button>(R.id.keypad_right).setOnTouchListener(this)
         view.findViewById<Button>(R.id.keypad_a).setOnTouchListener(this)
         view.findViewById<Button>(R.id.keypad_b).setOnTouchListener(this)
+    }
+
+    override fun display(display: Boolean) {
+        layout.visibility = if (display) View.VISIBLE else View.INVISIBLE
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {

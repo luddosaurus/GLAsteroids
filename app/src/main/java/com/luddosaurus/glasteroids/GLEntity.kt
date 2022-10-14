@@ -41,19 +41,19 @@ open class GLEntity {
         x += velX * dt
         y += velY * dt
 
-        if (left() > WORLD_WIDTH) {
+        if (left() > engine.camera.worldWidth) {
             setRight(0f)
         } else if (right() < 0f) {
-            setLeft(WORLD_WIDTH)
+            setLeft(engine.camera.worldWidth)
         }
 
-        if (top() > WORLD_HEIGHT) {
+        if (top() > engine.camera.worldHeight) {
             setBottom(0f)
         } else if (bottom() < 0f) {
-            setTop(WORLD_HEIGHT)
+            setTop(engine.camera.worldHeight)
         }
 
-        if (y > WORLD_HEIGHT / 2f) {
+        if (y > engine.camera.worldHeight / 2f) {
             setColors(1f, 0f, 0f, 1f)
         } else {
             setColors(1f, 1f, 1f, 1f)

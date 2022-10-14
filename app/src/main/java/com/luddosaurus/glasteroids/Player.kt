@@ -14,7 +14,7 @@ class Player(x: Float, y: Float) : GLEntity() {
     init {
         this.x = x
         this.y = y
-        width = 1f; //TO DO: gameplay values! move to configs
+        width = 1f;
         height = 1.5f;
         scale = 5f
 
