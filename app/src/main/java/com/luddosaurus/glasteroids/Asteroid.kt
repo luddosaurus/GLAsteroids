@@ -33,7 +33,7 @@ class Asteroid(x: Float, y: Float, val type : AsteroidSize) : GLEntity(){
         velY = between(-type.velocity, type.velocity)
 
         val points = Random.nextInt(6) + 3
-        val radius = width*0.5f
+        val radius = width * 0.5f
         this.mesh = Mesh(
             generateLinePolygon(points, radius),
             GLES20.GL_LINES,

@@ -19,8 +19,9 @@ const val PREFS = "com.luddosaurus.glasteroids_preferences"
 const val STARTING_LIFE = 3
 const val STAR_COUNT = 100
 const val ASTEROID_COUNT = 10
-const val TIME_BETWEEN_SHOTS = 0.25f //seconds. TO DO: game play setting!
-const val BULLET_COUNT = (TIME_TO_LIVE / TIME_BETWEEN_SHOTS).toInt() + 1
+const val PARTICLE_COUNT = 100
+const val TIME_BETWEEN_SHOTS = 0.25f //seconds
+const val BULLET_COUNT = (BULLET_TIME_TO_LIVE / TIME_BETWEEN_SHOTS).toInt() + 1
 
 lateinit var engine: Game
 
@@ -65,6 +66,7 @@ class Game(
     private val asteroids = ArrayList<Asteroid>()
     private val asteroidsToAdd = ArrayList<Asteroid>()
     private var bullets = ArrayList<Bullet>(BULLET_COUNT)
+    private var particles = ArrayList<Particle>(PARTICLE_COUNT)
 
     private var hud = HUD()
 
@@ -95,15 +97,13 @@ class Game(
         for (i in 0 until BULLET_COUNT) {
             bullets.add(Bullet())
         }
+        for (i in 0 until PARTICLE_COUNT) {
+            particles.add(Particle())
+        }
 
         setEGLContextClientVersion(2)
         setRenderer(this)
 
-    }
-
-    private fun spawnAsteroids() {
-        for (asteroid in asteroids)
-            asteroid.isAlive = true
     }
 
     fun setControls(input: InputManager) {
@@ -204,9 +204,9 @@ class Game(
         currentTime = newTime
         accumulator += frameTime
         while (accumulator >= dt) {
-            for (a in asteroids) {
-                a.update(dt)
-            }
+
+            // Updates
+            for (a in asteroids) a.update(dt)
 
             for (b in bullets) {
                 if (b.isDead()) {
@@ -215,22 +215,22 @@ class Game(
                 b.update(dt)
             }
 
+            for (particle in particles) particle.update(dt)
             player.update(dt)
 
+            // Collision
             collisionDetection()
             removeDeadEntities()
 
+            // Add
             for (a in asteroidsToAdd)
                 asteroids.add(a)
-
             asteroidsToAdd.clear()
 
+            hud.update(score, health, fps = 1 / frameTime, gameState)
+
             accumulator -= dt
-
-
             playAudio()
-            val fps = 1 / frameTime
-            hud.update(score, health, fps, gameState)
 
 
         }
@@ -252,9 +252,12 @@ class Game(
 
         hud.render(viewportMatrix)
 
-        for (b in bullets.filter { bullet -> !bullet.isDead() }) {
+        for (b in bullets.filter { bullet -> !bullet.isDead() })
             b.render(viewportMatrix)
-        }
+
+        for (particle in particles)
+            particle.render(viewportMatrix)
+
         player.render(viewportMatrix)
     }
 
@@ -271,8 +274,8 @@ class Game(
         audioQueue.add(event)
 
         when (event) {
-            GameEvent.DAMAGE -> onDamage();
-            GameEvent.HIT -> onHit(e);
+            GameEvent.DAMAGE -> onDamage()
+            GameEvent.HIT -> onHit(e)
             else -> {}
         }
 
@@ -288,6 +291,21 @@ class Game(
         score += asteroid.type.points
         for (i in 1 .. asteroid.type.splitNbr) {
             asteroidsToAdd.add(Asteroid(x,y, type!!))
+        }
+        generateParticles(asteroid)
+
+    }
+
+    private fun generateParticles(source: Asteroid) {
+        val particleCount = Random.nextInt(PARTICLE_COUNT / source.type.points)
+        var count = 0
+        for (particle in particles) {
+            if (count > particleCount) break
+            if (particle.isDead()) {
+                particle.fireFrom(source)
+                count++
+            }
+
         }
     }
 
